@@ -77,6 +77,8 @@ module.exports = {
         'plugin::users-permissions.user.create',
         'plugin::users-permissions.user.update',
         'plugin::users-permissions.user.destroy',
+        'plugin::users-permissions.user.stats',
+        'plugin::users-permissions.user.updateRole',
         'plugin::users-permissions.role.find',
         'plugin::users-permissions.role.findOne',
         'api::blog-post.blog-post.find', 'api::blog-post.blog-post.findOne', 'api::blog-post.blog-post.create', 'api::blog-post.blog-post.update', 'api::blog-post.blog-post.delete',
