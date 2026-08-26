@@ -16,5 +16,16 @@ module.exports = {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap(/*{ strapi }*/) {},
+  async bootstrap({ strapi }) {
+    const roleNames = ['content_manager', 'instructor', 'student'];
+    for (const name of roleNames) {
+      const existing = await strapi.query('plugin::users-permissions.role').findOne({ where: { type: name } });
+      if (!existing) {
+        await strapi.query('plugin::users-permissions.role').create({
+          data: { name, description: `${name} role`, type: name },
+        });
+        console.log(`Created role: ${name}`);
+      }
+    }
+  },
 };
