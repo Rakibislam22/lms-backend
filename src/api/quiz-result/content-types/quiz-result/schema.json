@@ -1,0 +1,33 @@
+{
+    "kind": "collectionType",
+    "collectionName": "quiz_results",
+    "info": {
+        "singularName": "quiz-result",
+        "pluralName": "quiz-results",
+        "displayName": "QuizResult"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "attributes": {
+        "student": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "quiz": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::quiz.quiz"
+        },
+        "score": {
+            "type": "integer"
+        },
+        "totalQuestions": {
+            "type": "integer"
+        },
+        "answers": {
+            "type": "json"
+        }
+    }
+}
