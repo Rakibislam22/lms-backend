@@ -24,9 +24,9 @@ const deniedTypes = [
 module.exports = () => ({
   'users-permissions': {
     config: {
-      jwtManagement: 'refresh',
-      sessions: {
-        httpOnly: true,
+      jwtManagement: 'legacy-support',
+      register: {
+        allowedFields: ['role'],
       },
     },
   },

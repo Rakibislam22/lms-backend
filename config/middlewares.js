@@ -20,7 +20,7 @@ module.exports = ({ env }) => [
     config: {
       origin: env('CORS_ORIGIN', '*').split(','),
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
-      headers: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+      headers: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
       keepHeaderOnError: true,
     },
   },
