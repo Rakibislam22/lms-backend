@@ -52,9 +52,17 @@ module.exports = createCoreController('api::quiz-result.quiz-result', ({ strapi 
             return ctx.badRequest('Quiz ID is required');
         }
 
-        const quiz = await strapi.db.query('api::quiz.quiz').findOne({
-            where: { id: quizId },
-        });
+        let quiz = null;
+        if (/^\d+$/.test(String(quizId))) {
+            quiz = await strapi.db.query('api::quiz.quiz').findOne({
+                where: { id: parseInt(quizId, 10) },
+            });
+        }
+        if (!quiz) {
+            quiz = await strapi.db.query('api::quiz.quiz').findOne({
+                where: { documentId: quizId },
+            });
+        }
 
         if (!quiz) {
             return ctx.notFound('Quiz not found');
@@ -71,31 +79,62 @@ module.exports = createCoreController('api::quiz-result.quiz-result', ({ strapi 
             }
         }
 
+        const checkAnswerCorrect = (q, studentAns) => {
+            if (studentAns === undefined || studentAns === null || studentAns === '') return false;
+
+            const cleanStudent = String(studentAns).trim().toLowerCase();
+
+            // 1. Direct match with correctAnswer or answer
+            const correctAns = q.correctAnswer ?? q.answer ?? q.correctOption;
+            if (correctAns !== undefined && cleanStudent === String(correctAns).trim().toLowerCase()) {
+                return true;
+            }
+
+            // 2. Option index match
+            const correctIdx = q.correctIndex !== undefined ? parseInt(q.correctIndex, 10) : null;
+            if (correctIdx !== null && !isNaN(correctIdx)) {
+                if (cleanStudent === String(correctIdx)) return true;
+
+                if (Array.isArray(q.options) && q.options[correctIdx] !== undefined) {
+                    if (cleanStudent === String(q.options[correctIdx]).trim().toLowerCase()) {
+                        return true;
+                    }
+                }
+            }
+
+            // 3. Option text match if correctAnswer is an index string/number
+            if (Array.isArray(q.options)) {
+                const parsedIdx = parseInt(String(correctAns).trim(), 10);
+                if (!isNaN(parsedIdx) && q.options[parsedIdx] !== undefined) {
+                    if (cleanStudent === String(q.options[parsedIdx]).trim().toLowerCase()) {
+                        return true;
+                    }
+                }
+                const studentIdx = parseInt(cleanStudent, 10);
+                if (!isNaN(studentIdx) && q.options[studentIdx] !== undefined) {
+                    if (String(q.options[studentIdx]).trim().toLowerCase() === String(correctAns).trim().toLowerCase()) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
         let score = 0;
         const totalQuestions = questions.length;
 
         // Auto-grade student's answers
         if (Array.isArray(answers)) {
             questions.forEach((q, idx) => {
-                const studentAns = answers[idx];
-                const correctAns = q.correctAnswer ?? q.answer ?? q.correctOption ?? q.correctIndex;
-                if (
-                    studentAns !== undefined &&
-                    correctAns !== undefined &&
-                    String(studentAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase()
-                ) {
+                if (checkAnswerCorrect(q, answers[idx])) {
                     score += 1;
                 }
             });
         } else if (answers && typeof answers === 'object') {
             questions.forEach((q, idx) => {
-                const studentAns = answers[idx] ?? answers[q.id] ?? answers[String(idx)];
-                const correctAns = q.correctAnswer ?? q.answer ?? q.correctOption ?? q.correctIndex;
-                if (
-                    studentAns !== undefined &&
-                    correctAns !== undefined &&
-                    String(studentAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase()
-                ) {
+                const ans = answers[idx] ?? answers[q.id] ?? answers[String(idx)];
+                if (checkAnswerCorrect(q, ans)) {
                     score += 1;
                 }
             });
@@ -103,7 +142,7 @@ module.exports = createCoreController('api::quiz-result.quiz-result', ({ strapi 
 
         ctx.request.body.data = {
             student: userId,
-            quiz: quizId,
+            quiz: quiz.id,
             score,
             totalQuestions,
             answers: answers ?? [],
