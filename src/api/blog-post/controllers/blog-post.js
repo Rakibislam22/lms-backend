@@ -10,7 +10,7 @@ const { getRoleType, isContentManagerOrAdmin } = require('../../../utils/access'
 module.exports = createCoreController('api::blog-post.blog-post', ({ strapi }) => ({
     async find(ctx) {
         const role = await getRoleType(strapi, ctx.state.user);
-        const canViewDrafts = role === 'admin' || role === 'content_manager';
+        const canViewDrafts = role === 'admin' || role === 'content_manager' || role === 'instructor';
 
         // Only published posts are visible to students and the public; drafts are not
         if (!canViewDrafts) {
