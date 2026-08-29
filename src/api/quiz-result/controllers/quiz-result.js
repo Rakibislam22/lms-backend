@@ -25,6 +25,18 @@ module.exports = createCoreController('api::quiz-result.quiz-result', ({ strapi 
                 student: { id: { $eq: ctx.state.user.id } },
             };
         }
+
+        if (!ctx.query.populate || ctx.query.populate === '*') {
+            ctx.query.populate = {
+                student: true,
+                quiz: {
+                    populate: {
+                        course: true,
+                    },
+                },
+            };
+        }
+
         return super.find(ctx);
     },
     async findOne(ctx) {
