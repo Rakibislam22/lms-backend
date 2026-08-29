@@ -7,7 +7,72 @@ module.exports = {
    *
    * This gives you an opportunity to extend code.
    */
-  register(/*{ strapi }*/) { },
+  register({ strapi }) {
+    const SELF_ASSIGNABLE_ROLES = new Set(['student', 'instructor', 'content_manager']);
+    try {
+      const up = strapi.plugin('users-permissions');
+      if (up) {
+        const authCtrl = up.controller('auth');
+        if (authCtrl && authCtrl.register) {
+          const originalRegister = authCtrl.register;
+          authCtrl.register = async (ctx) => {
+            const requestedRole = ctx.request.body?.role ?? 'student';
+            if (!SELF_ASSIGNABLE_ROLES.has(requestedRole)) {
+              return ctx.badRequest('You can only sign up as a student, instructor, or content manager');
+            }
+
+            delete ctx.request.body.role;
+            await originalRegister(ctx);
+
+            const role = await strapi.db.query('plugin::users-permissions.role').findOne({
+              where: {
+                $or: [
+                  { type: requestedRole },
+                  { name: requestedRole },
+                ],
+              },
+            });
+
+            const userId = ctx.body?.user?.id;
+            const documentId = ctx.body?.user?.documentId;
+            if (!role || (!userId && !documentId)) return;
+
+            if (requestedRole !== 'student') {
+              if (documentId) {
+                try {
+                  await strapi.documents('plugin::users-permissions.user').update({
+                    documentId,
+                    data: { role: role.id },
+                  });
+                } catch (e) {
+                  strapi.log?.warn?.(`Document update failed for ${documentId}: ${e.message}`);
+                }
+              }
+              try {
+                await strapi.db.query('plugin::users-permissions.user').update({
+                  where: { id: userId },
+                  data: { role: role.id },
+                });
+              } catch (e) {
+                strapi.log?.warn?.(`DB update failed for ${userId}: ${e.message}`);
+              }
+            }
+
+            if (ctx.body?.user) {
+              ctx.body.user.role = {
+                id: role.id,
+                name: role.name,
+                type: role.type,
+                description: role.description,
+              };
+            }
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Error in users-permissions register extension:', e.message);
+    }
+  },
 
   /**
    * An asynchronous bootstrap function that runs before
