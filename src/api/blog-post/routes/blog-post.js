@@ -11,8 +11,8 @@ module.exports = createCoreRouter('api::blog-post.blog-post', {
     config: {
         find: { policies: allow(['admin', 'content_manager', 'instructor', 'student', 'public']) },
         findOne: { policies: allow(['admin', 'content_manager', 'instructor', 'student', 'public']) },
-        create: { policies: allow(['admin', 'content_manager']) },
-        update: { policies: allow(['admin', 'content_manager']) },
-        delete: { policies: allow(['admin', 'content_manager']) },
+        create: { policies: allow(['admin', 'content_manager', 'instructor']) },
+        update: { policies: allow(['admin', 'content_manager', 'instructor']) },
+        delete: { policies: allow(['admin', 'content_manager', 'instructor']) },
     },
 });
