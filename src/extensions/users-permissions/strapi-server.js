@@ -1,6 +1,6 @@
 'use strict';
 
-const SELF_ASSIGNABLE_ROLES = new Set(['student', 'instructor']);
+const SELF_ASSIGNABLE_ROLES = new Set(['student', 'instructor', 'content_manager']);
 
 module.exports = (plugin) => {
   const originalRegister = plugin.controllers.auth.register;
@@ -16,7 +16,7 @@ module.exports = (plugin) => {
   plugin.controllers.auth.register = async (ctx) => {
     const requestedRole = ctx.request.body?.role ?? 'student';
     if (!SELF_ASSIGNABLE_ROLES.has(requestedRole)) {
-      return ctx.badRequest('You can only sign up as a student or instructor');
+      return ctx.badRequest('You can only sign up as a student, instructor, or content manager');
     }
 
     // The plugin's stock registration handler deliberately rejects unknown
@@ -25,7 +25,12 @@ module.exports = (plugin) => {
     await originalRegister(ctx);
 
     const role = await strapi.db.query('plugin::users-permissions.role').findOne({
-      where: { type: requestedRole },
+      where: {
+        $or: [
+          { type: requestedRole },
+          { name: requestedRole },
+        ],
+      },
     });
     const userId = ctx.body?.user?.id;
     if (!role || !userId) return;
