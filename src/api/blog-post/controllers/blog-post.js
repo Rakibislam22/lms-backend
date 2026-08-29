@@ -23,8 +23,13 @@ module.exports = createCoreController('api::blog-post.blog-post', ({ strapi }) =
         return super.find(ctx);
     },
     async findOne(ctx) {
+        const isNumeric = !isNaN(Number(ctx.params.id));
+        const whereClause = isNumeric
+            ? { id: Number(ctx.params.id) }
+            : { documentId: ctx.params.id };
+
         const post = await strapi.db.query('api::blog-post.blog-post').findOne({
-            where: { id: ctx.params.id },
+            where: whereClause,
             populate: ['author'],
         });
         if (!post) return ctx.notFound('Blog post not found');
@@ -37,6 +42,7 @@ module.exports = createCoreController('api::blog-post.blog-post', ({ strapi }) =
             return ctx.notFound('Blog post not found');
         }
 
+        ctx.params.id = post.documentId || post.id;
         return super.findOne(ctx);
     },
     async create(ctx) {
@@ -51,8 +57,13 @@ module.exports = createCoreController('api::blog-post.blog-post', ({ strapi }) =
         return super.create(ctx);
     },
     async update(ctx) {
+        const isNumeric = !isNaN(Number(ctx.params.id));
+        const whereClause = isNumeric
+            ? { id: Number(ctx.params.id) }
+            : { documentId: ctx.params.id };
+
         const post = await strapi.db.query('api::blog-post.blog-post').findOne({
-            where: { id: ctx.params.id },
+            where: whereClause,
             populate: ['author'],
         });
         if (!post) return ctx.notFound('Blog post not found');
@@ -61,11 +72,17 @@ module.exports = createCoreController('api::blog-post.blog-post', ({ strapi }) =
         if (role !== 'admin' && post.author?.id !== ctx.state.user.id) {
             return ctx.forbidden('You can only edit your own posts');
         }
+        ctx.params.id = post.documentId || post.id;
         return super.update(ctx);
     },
     async delete(ctx) {
+        const isNumeric = !isNaN(Number(ctx.params.id));
+        const whereClause = isNumeric
+            ? { id: Number(ctx.params.id) }
+            : { documentId: ctx.params.id };
+
         const post = await strapi.db.query('api::blog-post.blog-post').findOne({
-            where: { id: ctx.params.id },
+            where: whereClause,
             populate: ['author'],
         });
         if (!post) return ctx.notFound('Blog post not found');
@@ -74,6 +91,7 @@ module.exports = createCoreController('api::blog-post.blog-post', ({ strapi }) =
         if (role !== 'admin' && post.author?.id !== ctx.state.user.id) {
             return ctx.forbidden('You can only delete your own posts');
         }
+        ctx.params.id = post.documentId || post.id;
         return super.delete(ctx);
     },
 }));
