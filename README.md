@@ -82,8 +82,8 @@ Located in [`src/api/quiz-result/controllers/quiz-result.js`](file:///d:/my-code
 Located in [`src/extensions/users-permissions/strapi-server.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/extensions/users-permissions/strapi-server.js):
 
 - Strapi 5 uses a factory pattern for core controllers. We wrapped `plugin.controllers.auth` to intercept `register`.
-- On registration, the requested role (`student`, `instructor`, `content_manager`) is looked up and assigned immediately.
-- The `admin` role is explicitly blocked from public registration.
+- On registration, the requested role (`student`, `instructor`) is looked up and assigned immediately.
+- The `admin` and `content_manager` roles are explicitly protected from public registration and are assigned via the Admin Panel.
 
 ### 3. Draft vs. Published Blog Content Controller
 

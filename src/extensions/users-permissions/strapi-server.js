@@ -1,6 +1,6 @@
 'use strict';
 
-const SELF_ASSIGNABLE_ROLES = new Set(['student', 'instructor', 'content_manager']);
+const SELF_ASSIGNABLE_ROLES = new Set(['student', 'instructor']);
 
 module.exports = (plugin) => {
   // In Strapi 5, plugin.controllers.auth and plugin.controllers.user are factory functions:
@@ -15,7 +15,7 @@ module.exports = (plugin) => {
     controllers.register = async (ctx) => {
       const requestedRole = ctx.request.body?.role ?? 'student';
       if (!SELF_ASSIGNABLE_ROLES.has(requestedRole)) {
-        return ctx.badRequest('You can only sign up as a student, instructor, or content manager');
+        return ctx.badRequest('You can only sign up as a student or instructor');
       }
 
       // The plugin's stock registration handler deliberately rejects unknown
