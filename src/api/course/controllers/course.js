@@ -12,28 +12,79 @@ module.exports = createCoreController('api::course.course', ({ strapi }) => ({
         }
         return super.create(ctx);
     },
-    async update(ctx) {
+
+    async findOne(ctx) {
+        const isNumeric = !isNaN(Number(ctx.params.id));
+        const whereClause = isNumeric
+            ? { id: Number(ctx.params.id) }
+            : { documentId: ctx.params.id };
+
         const course = await strapi.db.query('api::course.course').findOne({
-            where: { id: ctx.params.id },
+            where: whereClause,
+            populate: ['owner', 'lessons', 'enrollments'],
+        });
+        if (!course) return ctx.notFound('Course not found');
+
+        ctx.params.id = course.documentId || course.id;
+        return super.findOne(ctx);
+    },
+
+    async update(ctx) {
+        const isNumeric = !isNaN(Number(ctx.params.id));
+        const whereClause = isNumeric
+            ? { id: Number(ctx.params.id) }
+            : { documentId: ctx.params.id };
+
+        const course = await strapi.db.query('api::course.course').findOne({
+            where: whereClause,
             populate: ['owner'],
         });
         if (!course) return ctx.notFound('Course not found');
+
         const user = ctx.state.user;
-        if (!(await isContentManagerOrAdmin(strapi, user)) && course?.owner?.id !== user.id) {
+        const ownerId = course.owner?.id || (typeof course.owner === 'number' ? course.owner : null);
+        if (!(await isContentManagerOrAdmin(strapi, user)) && ownerId !== user?.id) {
             return ctx.forbidden('You can only edit your own courses');
         }
+
+        ctx.params.id = course.documentId || course.id;
         return super.update(ctx);
     },
+
     async delete(ctx) {
+        const isNumeric = !isNaN(Number(ctx.params.id));
+        const whereClause = isNumeric
+            ? { id: Number(ctx.params.id) }
+            : { documentId: ctx.params.id };
+
         const course = await strapi.db.query('api::course.course').findOne({
-            where: { id: ctx.params.id },
+            where: whereClause,
             populate: ['owner'],
         });
         if (!course) return ctx.notFound('Course not found');
+
         const user = ctx.state.user;
-        if (!(await isContentManagerOrAdmin(strapi, user)) && course?.owner?.id !== user.id) {
+        const ownerId = course.owner?.id || (typeof course.owner === 'number' ? course.owner : null);
+        if (!(await isContentManagerOrAdmin(strapi, user)) && ownerId !== user?.id) {
             return ctx.forbidden('You can only delete your own courses');
         }
+
+        // Cascade delete related records to prevent foreign key errors
+        try {
+            await strapi.db.query('api::lesson.lesson').deleteMany({
+                where: { course: course.id }
+            });
+            await strapi.db.query('api::quiz.quiz').deleteMany({
+                where: { course: course.id }
+            });
+            await strapi.db.query('api::enrollment.enrollment').deleteMany({
+                where: { course: course.id }
+            });
+        } catch (cascadeErr) {
+            strapi.log?.warn?.(`Cascade cleanup for course ${course.id}: ${cascadeErr.message}`);
+        }
+
+        ctx.params.id = course.documentId || course.id;
         return super.delete(ctx);
     },
 }));
