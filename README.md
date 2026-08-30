@@ -16,10 +16,10 @@
 
 ## 🧱 Mandatory Tech Stack
 
-| Layer | Technology | Hosting |
-|---|---|---|
+| Layer             | Technology                                  | Hosting     |
+| ----------------- | ------------------------------------------- | ----------- |
 | **Backend / CMS** | **Strapi 5 (Node.js, PostgreSQL / SQLite)** | **Railway** |
-| **Frontend** | **Next.js 16 (App Router) + Tailwind CSS** | **Vercel** |
+| **Frontend**      | **Next.js 16 (App Router) + Tailwind CSS**  | **Vercel**  |
 
 ---
 
@@ -34,16 +34,16 @@ Strapi enforces access rules on the API level through custom policies, controlle
 
 ### Permission Matrix
 
-| Action | Admin | Content Manager | Instructor | Student |
-|---|:---:|:---:|:---:|:---:|
-| **Manage users & assign roles** | ✅ | ❌ | ❌ | ❌ |
-| **Create / edit / delete any course** | ✅ | ✅ | Own only | ❌ |
-| **Add / edit / delete lessons** | ✅ | ✅ | Own courses | ❌ |
-| **Create quizzes** | ✅ | ✅ | Own courses | ❌ |
-| **View student progress & results** | ✅ | ✅ | Own courses | Own only |
-| **Write / manage blog posts** | ✅ | ✅ | ❌ | ❌ |
-| **Enroll in a course** | ❌ | ❌ | ❌ | ✅ |
-| **Take quizzes & view auto-grades** | ❌ | ❌ | ❌ | ✅ |
+| Action                                | Admin | Content Manager | Instructor  | Student  |
+| ------------------------------------- | :---: | :-------------: | :---------: | :------: |
+| **Manage users & assign roles**       |  ✅   |       ❌        |     ❌      |    ❌    |
+| **Create / edit / delete any course** |  ✅   |       ✅        |  Own only   |    ❌    |
+| **Add / edit / delete lessons**       |  ✅   |       ✅        | Own courses |    ❌    |
+| **Create quizzes**                    |  ✅   |       ✅        | Own courses |    ❌    |
+| **View student progress & results**   |  ✅   |       ✅        | Own courses | Own only |
+| **Write / manage blog posts**         |  ✅   |       ✅        |     ❌      |    ❌    |
+| **Enroll in a course**                |  ❌   |       ❌        |     ❌      |    ✅    |
+| **Take quizzes & view auto-grades**   |  ❌   |       ❌        |     ❌      |    ✅    |
 
 ---
 
@@ -51,23 +51,25 @@ Strapi enforces access rules on the API level through custom policies, controlle
 
 The Strapi backend exposes the following primary content types and endpoints:
 
-| Content Type / Endpoint | Description | Access Rules |
-|---|---|---|
-| `api::course.course` | Course tracks (title, description, instructor) | Admin/CM all; Instructor own; Student/Public read |
-| `api::lesson.lesson` | Curriculum units (title, content, videoUrl, order) | Inherited from course ownership; Student read |
-| `api::enrollment.enrollment` | Student course registrations & progress cache | Student own; Instructor/CM/Admin read |
-| `api::quiz.quiz` | MCQ assessments with questions & answers | Instructor/CM/Admin manage; Student read |
-| `api::quiz-result.quiz-result` | Auto-graded student submissions & scores | Student submit/read own; Instructor/CM/Admin view |
-| `api::lesson-progress.lesson-progress` | Per-lesson completion tracking records | Student own; Instructor/CM/Admin view |
-| `api::blog-post.blog-post` | Articles (title, body, coverImageUrl, status) | Public read `published`; CM/Admin write & drafts |
-| `PUT /api/users/:id/role` | Custom endpoint for live user role reassignment | Strictly Admin role only |
+| Content Type / Endpoint                | Description                                        | Access Rules                                      |
+| -------------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
+| `api::course.course`                   | Course tracks (title, description, instructor)     | Admin/CM all; Instructor own; Student/Public read |
+| `api::lesson.lesson`                   | Curriculum units (title, content, videoUrl, order) | Inherited from course ownership; Student read     |
+| `api::enrollment.enrollment`           | Student course registrations & progress cache      | Student own; Instructor/CM/Admin read             |
+| `api::quiz.quiz`                       | MCQ assessments with questions & answers           | Instructor/CM/Admin manage; Student read          |
+| `api::quiz-result.quiz-result`         | Auto-graded student submissions & scores           | Student submit/read own; Instructor/CM/Admin view |
+| `api::lesson-progress.lesson-progress` | Per-lesson completion tracking records             | Student own; Instructor/CM/Admin view             |
+| `api::blog-post.blog-post`             | Articles (title, body, coverImageUrl, status)      | Public read `published`; CM/Admin write & drafts  |
+| `PUT /api/users/:id/role`              | Custom endpoint for live user role reassignment    | Strictly Admin role only                          |
 
 ---
 
 ## 🌟 Key Backend Technical Implementations
 
 ### 1. Server-Side Auto-Grading Engine (`quiz-result`)
+
 Located in [`src/api/quiz-result/controllers/quiz-result.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/api/quiz-result/controllers/quiz-result.js):
+
 - On `POST /api/quiz-results`, the student submits their answers array along with the `quizId`.
 - The controller fetches the authoritative quiz questions and correct answers from the database.
 - It iterates through each question, matches the student's answer, calculates the `score` percentage:
@@ -76,18 +78,24 @@ Located in [`src/api/quiz-result/controllers/quiz-result.js`](file:///d:/my-code
 - The response returns the calculated score and question details for instant feedback.
 
 ### 2. Automatic Role Assignment on Registration
+
 Located in [`src/extensions/users-permissions/strapi-server.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/extensions/users-permissions/strapi-server.js):
+
 - Strapi 5 uses a factory pattern for core controllers. We wrapped `plugin.controllers.auth` to intercept `register`.
 - On registration, the requested role (`student`, `instructor`, `content_manager`) is looked up and assigned immediately.
 - The `admin` role is explicitly blocked from public registration.
 
 ### 3. Draft vs. Published Blog Content Controller
+
 Located in [`src/api/blog-post/controllers/blog-post.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/api/blog-post/controllers/blog-post.js):
+
 - When non-authenticated users or students query `/api/blog-posts`, Strapi applies a filter forcing `filters[status][$eq]=published`.
 - Content Managers and Admins can see both drafts and published articles.
 
 ### 4. Automated Bootstrap Permissions
+
 Located in [`src/index.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/index.js):
+
 - On server startup (`bootstrap`), the script verifies all 4 roles exist in the database.
 - It automatically configures and updates permissions for each role so the app runs out-of-the-box on clean installs and deployments.
 
@@ -96,21 +104,25 @@ Located in [`src/index.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/inde
 ## 🚀 Local Development Setup
 
 ### 1. Prerequisites
+
 - **Node.js**: `v20.x` or higher
 - **npm**: `v9.x` or higher
 
 ### 2. Clone the Repository
+
 ```bash
 git clone https://github.com/Rakibislam22/lms-backend.git
 cd lms-backend
 ```
 
 ### 3. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 4. Configure Environment Variables
+
 Create a `.env` file in the root directory (or copy from `.env.example`):
 
 ```env
@@ -136,6 +148,7 @@ CORS_ORIGIN=*
 ```
 
 ### 5. Run the Backend Server
+
 ```bash
 # Develop mode with auto-reload
 npm run develop
@@ -183,4 +196,5 @@ During the video demonstration:
 ---
 
 ## 📄 License
+
 Developed for the **Junior Software Engineer — Project Round**. All rights reserved.
