@@ -29,7 +29,7 @@ Strapi enforces access rules on the API level through custom policies, controlle
 
 1. **Admin** — Unrestricted superuser. Full management of users and role assignments via `PUT /api/users/:id/role`. Full control of all content types.
 2. **Content Manager** — Full platform course and lesson authoring. Writes and manages blog publications across the site. Does not manage user accounts.
-3. **Instructor** — Manages their own courses, lessons, and quizzes. Can inspect enrolled student progress for their own courses. Can author and publish blog posts.
+3. **Instructor** — Manages their own courses, lessons, and quizzes. Can inspect enrolled student progress for their own courses.
 4. **Student** — Enrolls in courses, updates their own lesson progress, takes quizzes, and views their own evaluation records.
 
 ### Permission Matrix
@@ -41,7 +41,7 @@ Strapi enforces access rules on the API level through custom policies, controlle
 | **Add / edit / delete lessons** | ✅ | ✅ | Own courses | ❌ |
 | **Create quizzes** | ✅ | ✅ | Own courses | ❌ |
 | **View student progress & results** | ✅ | ✅ | Own courses | Own only |
-| **Write / manage blog posts** | ✅ | ✅ | ✅ (Own) | ❌ |
+| **Write / manage blog posts** | ✅ | ✅ | ❌ | ❌ |
 | **Enroll in a course** | ❌ | ❌ | ❌ | ✅ |
 | **Take quizzes & view auto-grades** | ❌ | ❌ | ❌ | ✅ |
 
@@ -59,7 +59,7 @@ The Strapi backend exposes the following primary content types and endpoints:
 | `api::quiz.quiz` | MCQ assessments with questions & answers | Instructor/CM/Admin manage; Student read |
 | `api::quiz-result.quiz-result` | Auto-graded student submissions & scores | Student submit/read own; Instructor/CM/Admin view |
 | `api::lesson-progress.lesson-progress` | Per-lesson completion tracking records | Student own; Instructor/CM/Admin view |
-| `api::blog-post.blog-post` | Articles (title, body, coverImageUrl, status) | Public read `published`; CM/Admin/Instructor write & drafts |
+| `api::blog-post.blog-post` | Articles (title, body, coverImageUrl, status) | Public read `published`; CM/Admin write & drafts |
 | `PUT /api/users/:id/role` | Custom endpoint for live user role reassignment | Strictly Admin role only |
 
 ---
@@ -84,7 +84,7 @@ Located in [`src/extensions/users-permissions/strapi-server.js`](file:///d:/my-c
 ### 3. Draft vs. Published Blog Content Controller
 Located in [`src/api/blog-post/controllers/blog-post.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/api/blog-post/controllers/blog-post.js):
 - When non-authenticated users or students query `/api/blog-posts`, Strapi applies a filter forcing `filters[status][$eq]=published`.
-- Instructors, Content Managers, and Admins can see both drafts and published articles.
+- Content Managers and Admins can see both drafts and published articles.
 
 ### 4. Automated Bootstrap Permissions
 Located in [`src/index.js`](file:///d:/my-code/WEB/Cps_Task/lms-backend/src/index.js):
