@@ -8,7 +8,7 @@
 ## 🔗 Live Deployment & Repositories
 
 - **Live Backend (Railway):** [https://lms-backend-production-b6a5.up.railway.app](https://lms-backend-production-b6a5.up.railway.app)
-- **Live Frontend (Vercel):** [https://lms-frontend-rakib.vercel.app](https://lms-frontend-rakib.vercel.app) *(or your Vercel deployment URL)*
+- **Live Frontend (Vercel):** [https://learn-sphere-pi.vercel.app](https://learn-sphere-pi.vercel.app)
 - **Backend GitHub Repository:** [https://github.com/Rakibislam22/lms-backend](https://github.com/Rakibislam22/lms-backend)
 - **Frontend GitHub Repository:** [https://github.com/Rakibislam22/lms-frontend](https://github.com/Rakibislam22/lms-frontend)
 
@@ -119,13 +119,13 @@ HOST=0.0.0.0
 PORT=1337
 NODE_ENV=development
 
-# Security Keys (Generate random strings or use sample keys)
-APP_KEYS=uDGuNGc0KlPk9VfjYtJx5w==,F7N9GGTlPF+H8rcHFO1Rkg==,QMEkalMnV22kz9xhAh+7sw==,B4JsluE1W99QKUGGmz3x2g==
-API_TOKEN_SALT=ujPmtwhZD176aWmWsIM4tg==
-ADMIN_JWT_SECRET=LLRY+Z5xxWvEFOnmjmLkwg==
-JWT_SECRET=fFVD9T691dLEmP8qoBuL9A==
-TRANSFER_TOKEN_SALT=n9P9OrRUZDNHylfNP7P2qA==
-ENCRYPTION_KEY=U6vYQRtZrW56AdVb/zi1Kw==
+# Security Keys (Generate via: openssl rand -base64 16)
+APP_KEYS=your_app_key_1,your_app_key_2,your_app_key_3,your_app_key_4
+API_TOKEN_SALT=your_api_token_salt_here
+ADMIN_JWT_SECRET=your_admin_jwt_secret_here
+JWT_SECRET=your_jwt_secret_here
+TRANSFER_TOKEN_SALT=your_transfer_token_salt_here
+ENCRYPTION_KEY=your_encryption_key_here
 
 # Database (defaults to SQLite locally)
 DATABASE_CLIENT=sqlite
